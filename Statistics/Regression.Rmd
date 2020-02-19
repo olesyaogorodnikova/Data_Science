@@ -1,0 +1,457 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(ModelMetrics)
+library(stats4)
+```
+
+
+```{r}
+library(readr)
+iqsize <- read.csv("iqsize.txt", header= TRUE, sep = "\t")
+
+iq<-data.frame(iqsize)
+iq
+
+summary(iq)
+nrow(iq)
+
+```
+
+
+```{r}
+library(ggplot2)
+library(car)
+
+
+
+pairs(~PIQ+Brain+Height+Weight,data=iq,
+   main="Simple Scatterplot Matrix")
+
+```
+
+
+```{r}
+library(corrplot)
+M<-cor(iq)
+plot(iq)
+corrplot(M, method="number")
+
+```
+
+
+```{r}
+attach(iq)
+plot(Brain, PIQ, main="Scatterplot Example",
+   xlab="Brain ", ylab="PIQ", pch=19)
+abline(lm(PIQ~Brain), col="red") # regression line (y~x)
+lines(lowess(Brain,PIQ), col="blue") # lowess line (x,y)
+```
+
+
+```{r}
+attach(iq)
+plot(Height, Weight, main="Scatterplot Example",
+   xlab="Height ", ylab="Weight", pch=19)
+abline(lm(Weight~Height), col="red") # regression line (y~x)
+lines(lowess(Height,Weight), col="blue") # lowess line (x,y)
+
+```
+
+
+```{r}
+y=iq$PIQ
+x1=iq$Brain
+x2=iq$Height
+x3=iq$Weight
+
+lr <- lm(y ~ x1 + x2 + x3, data=iq)
+lr1 <- lm(y ~ x2 + x3, data=iq)
+lr2 <- lm(y ~ x1, data=iq)
+plot(lr)
+plot(lr1)
+plot(lm(lr2))
+
+summary(lr)
+
+library(jtools)
+effect_plot(lr, pred = x1, interval = TRUE, plot.points = TRUE)
+```
+
+
+```{r}
+cor.test(iq$PIQ,iq$Brain)
+
+summary(lr)
+```
+
+
+```{r}
+library(PerformanceAnalytics)
+chart.Correlation(iq,histogram = TRUE)
+
+```
+```{r}
+```
+
+Ex. 2
+
+```{r}
+dem <- read.csv("demandmoney.csv")
+str(dem)
+summary(dem)
+
+library(PerformanceAnalytics)
+chart.Correlation(dem,histogram = TRUE)
+
+
+```
+
+
+```{r}
+F=cor(dem)
+corrplot(F, method="number")
+```
+
+
+```{r}
+names(dem)
+
+plot(dem[c(2,3,4,5)])
+
+```
+
+
+```{r}
+money <- lm(Money.printed ~ GDP + Interest.RATE, data = dem)
+
+res <-money$fitted.values - dem$Money.printed
+
+plot(dem$ï..year, res)
+plot(money$fitted.values,res)
+money.log = log(dem$Money.printed)
+gdp.log = log(dem$GDP)
+ir.log = log(dem$Interest.RATE)
+  
+money_log <- lm(money.log ~ gdp.log + Interest.RATE, data = dem)
+summary(money_log)
+
+AIS(money)
+BIS(money)
+
+ts<-ts(res,start=1, frequency=1)
+plot(ts)
+acf(ts)
+pacf(ts)
+Box.test(ts, lag=1,type="Ljung-Box")
+money4 = regr(log(Money.printed)~ GDP+Interest.RATE, data = dem)
+
+library(jtools)
+effect_plot(money, pred = GDP, interval = TRUE, plot.points = TRUE)
+
+```
+
+```{r}
+plot(money_log)
+```
+
+```{r}
+VIF = 1/(1-summary(money)$r.squared)
+VIF
+vif(money)
+```
+
+
+```{r}
+library(jtools)
+effect_plot(Money.printed, pred = GDP, interval = TRUE, plot.points = TRUE)
+```
+
+
+```{r}
+library(gvlma)
+gvlma(money_log)
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+leuk <- read.csv("leukemiaremission.txt", header= TRUE, sep = "\t")
+leuk
+```
+
+
+```{r}
+str(leuk)
+summary(leuk)
+names(leuk)
+
+```
+
+
+```{r}
+S=cor(leuk)
+corrplot(S, method="number")
+```
+
+
+```{r}
+library(MASS)
+leuk_lm <- glm(ï..REMISS ~ ., family=binomial (link="logit"), data = leuk)
+stepAIC(leuk_lm)
+```
+
+
+```{r}
+m=glm(ï..REMISS ~ LI + CELL + TEMP, family=binomial (link="logit"), data=leuk)
+m
+```
+
+
+```{r}
+cor(leuk$ï..REMISS,leuk$LI)
+m2=glm(ï..REMISS ~ LI, family=binomial (link="logit"), data=leuk)
+vif(m2)
+vif(m)
+
+```
+
+
+```{r}
+t.test(leuk$ï..REMISS,leuk$LI,conf.level=0.95)$conf.int
+
+```
+
+
+```{r}
+l=glm(ï..REMISS ~ SMEAR, family=binomial (link="logit"), data=leuk)
+
+exp(confint.default(l))
+
+```
+
+
+```{r}
+par(mfrow=c(1, 3))  # divide graph area in 2 columns
+boxplot(iq$Brain, main="Brain", sub=paste("Outlier rows: ", boxplot.stats(iq$Brain)$out))
+boxplot(iq$Height, main="Height", sub=paste("Outlier rows: ", boxplot.stats(iq$Height)$out))
+boxplot(iq$Weight, main="Weight", sub=paste("Outlier rows: ", boxplot.stats(iq$Weight)$out))
+boxplot(iq)
+
+```
+
+
+```{r}
+library("ggplot2")
+
+linear_1 = lm(iq$PIQ ~ iq$Brain, data = iq)
+print(linear_1)
+summary(linear_1)
+
+p1_1 <- ggplot(data = iq, aes(x = iq$Brain, y = iq$PIQ )) +
+           geom_smooth(method = "lm", se=TRUE, color="blue", formula = y ~ x) +
+           geom_point()
+
+p1_1
+```
+
+
+```{r}
+temp_var_1 <- predict(linear_1, interval="prediction")
+
+#temp_var_1
+new_df_1 <- cbind(iq, temp_var_1)
+
+ggplot(new_df_1, aes(iq$Brain, iqsize$PIQ))+
+    geom_point() +
+    geom_line(aes(y=lwr), color = "red", linetype = "dashed")+
+    geom_line(aes(y=upr), color = "red", linetype = "dashed")+
+    geom_smooth(method=lm, se=TRUE)
+new_df_1
+```
+
+
+```{r}
+fit <- lm(PIQ ~ Brain + Height + Weight, data = iq)
+effect_plot(fit, pred = Brain , interval = TRUE, plot.points = TRUE)
+effect_plot(fit, pred = Height , interval = TRUE, plot.points = TRUE)
+effect_plot(fit, pred = Weight , interval = TRUE, plot.points = TRUE)
+
+```
+
+
+```{r}
+library(e1071)  # for skewness function
+par(mfrow=c(1, 2))  # divide graph area in 2 columns
+
+plot(density(iq$Brain), main="Density Plot: Brain", ylab="Frequency", sub=paste("Skewness:", round(e1071::skewness(cars$speed), 2)))  # density plot for 'speed'
+
+polygon(density(iq$Brain), col="red")
+
+plot(density(iq$PIQ), main="Density Plot: PIQ", ylab="Frequency", sub=paste("Skewness:", round(e1071::skewness(iq$PIQ), 2)))  # density plot for 'dist'
+
+polygon(density(iq$PIQ), col="red")
+
+```
+
+
+```{r}
+summ=summary(linear_1)
+b=summ$coefficients
+beta = b["iq$Brain","Estimate"]
+std.error <- b["iq$Brain", "Std. Error"]  
+t_value <- beta/std.error
+p_value <- 2*pt(-abs(t_value), df=nrow(iq)-ncol(iq))
+f_statistic <- summ$fstatistic[1]
+linear_1$fitted.values
+f=summ$fstatistic
+model_p <- pf(f[1], f[2], f[3], lower=FALSE)
+model_p
+```
+
+
+```{r}
+AIC(linear_1)
+```
+
+
+```{r}
+BIC(linear_1)
+```
+
+
+```{r}
+set.seed(100)  # setting seed to reproduce results of random sampling
+tidx <- sample(1:nrow(iq), 0.8*nrow(iq))
+# row indices for training data
+trainingData <- iq[tidx, ]  # model training data
+testData  <- iq[-tidx, ]   # test data
+
+lmMod <- lm(PIQ ~ Brain, data=trainingData)  # build the model
+Pred <- predict(lmMod, testData)  # predict distance
+```
+
+
+```{r}
+summary(lmMod)
+
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(ModelMetrics)
+library(stats4)
+```
+
+
+```{r}
+actuals_preds <- data.frame(cbind(actuals=testData$Brain, predicteds=Pred))  # make actuals_predicteds dataframe.
+correlation_accuracy <- cor(actuals_preds)  # 82.7%
+head(actuals_preds)
+per=sum(actuals_preds$actuals[1:10])/sum(1-actuals_preds$predicteds[1:10])
+per
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+PerentChange = sum(actuals_preds$actuals[1:7]) - sum(actuals_preds$actuals[1:7])/sum(actuals_preds$predicteds[1:7])*100
+PerentChange
+```
+
+
+```{r}
+library(DAAG)
+cvResults <- suppressWarnings(CVlm(df=iq, form.lm=PIQ ~ Brain, m=5, dots=FALSE, seed=29, legend.pos="topleft",  printit=FALSE, main="Small symbols are predicted values while bigger ones are actuals."));  # performs the CV
+attr(cvResults, 'ms') 
+```
+
+
+```{r}
+s_leuk = scale(leuk)
+
+```
+
+
+```{r}
+# check that we get mean of 0 and sd of 1
+colMeans(s_leuk)  # faster version of apply(scaled.dat, 2, mean)
+apply(s_leuk, 2, sd)
+
+df_s_leuk = data.frame(s_leuk)
+
+xtabs(~leuk$ï..REMISS + leuk$CELL, data = leuk)
+Logit_3 <- glm(leuk$ï..REMISS ~ df_s_leuk$CELL + df_s_leuk$SMEAR + df_s_leuk$INFIL + df_s_leuk$LI + df_s_leuk$BLAST + df_s_leuk$TEMP, family = binomial(link = "logit"), data = df_s_leuk)
+
+names(leuk)
+?glm
+print(Logit_3)
+summary(Logit_3)
+
+logitMod2 <- glm( leuk$ï..REMISS ~ df_s_leuk$SMEAR , data=df_s_leuk, family=binomial(link="logit"))
+summary(logitMod2)
+
+
+```
+```{r}
+summ(Logit_3)
+plot_summs(Logit_3)
+```
+
+```{r}
+plot(Logit_3)
+plot(logitMod2)
+
+```
+
+
+```{r}
+X<-iq[,1:4]
+library(GGally)
+ggpairs(X)
+```
+
+
+```{r}
+```
+
+
+```{r}
+library(DMwR)
+DMwR::regr.eval(actuals_preds$actuals, actuals_preds$predicteds)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

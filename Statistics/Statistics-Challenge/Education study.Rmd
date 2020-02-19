@@ -1,0 +1,324 @@
+---
+title: "Higher Education"
+output: html_document
+---
+GOAL
+Which are the explanatory variables (decision making factors) for young people willing to go to study abroad. Q2 (1/0)
+
+The dependant variable: If they have been already abroad
+Dependant variables: 
+X1 – country of origin (category/EU countries)
+X2 – type of community, urb/rur (1/0)
+X3 – spoken languages, yes/no ( 1/0)
+X4 – age (before 24 and after - 0/1)
+X5 – gender m/f ( 1/2)
+X6 – marital status, single/not (1/0)
+X7 – importance of having experience abroad (1/0) – Q1
+X8 – studied, never studied (0/1) -Q6
+
+X.. – Benefits of study abroad ( for those who already was) -Q3
+X… – Reasons why not to go ( for those who never been) – Q4
+
+
+```{r}
+library(readxl)
+edu <- read_excel("data_even_shorter.xlsx")
+edu
+
+```
+
+
+```{r}
+
+high <- read_excel("data_high.xlsx")
+high
+
+```
+
+
+```{r}
+hed <-high[c(4,1,2,27,28,29,30,31,32,33)]
+hed
+```
+
+
+```{r}
+
+with(hed, table(gender, age, abroad))
+
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+n1 = nrow(hed[hed$abroad == 1,])
+n_total = nrow(hed)
+hed <- hed[hed$Countries != "CY",]
+ggplot(hed, aes(x = reorder(Countries,abroad), abroad/n1, fill = factor(community))) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        ggtitle("Going abroad by Country and Gender") +
+        theme(legend.title = element_text(color = "black", size = 10),
+        legend.text = element_text(color = "black")) +
+        scale_fill_discrete(name = "Community",limits=c("0","1"), labels = c("village", "city")) +
+        scale_y_continuous(labels=scales::percent)+
+        xlab("Countries") + ylab("Going abroad")
+
+```
+
+
+```{r}
+n1 = nrow(hed[hed$abroad == 1,])
+length(hed$abroad)
+length(n1)
+hed <- hed[hed$Countries != "CY",]
+ggplot(hed, aes(x = reorder(Countries,abroad), abroad/n1, fill = factor(languages))) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        ggtitle("Going abroad by Country and Lnaguage spoken") +
+        theme(legend.title = element_text(color = "black", size = 10),
+        legend.text = element_text(color = "black")) +
+        scale_fill_discrete(name = "Languages",limits=c("0","1"), labels = c("no", "more than 1")) +
+        scale_y_continuous(labels=scales::percent)+
+        xlab("Countries") + ylab("Going abroad")
+```
+
+
+```{r}
+n1 = nrow(hed[hed$abroad == 1,])
+hed <- hed[hed$Countries != "CY",]
+ggplot(hed, aes(x = reorder(Countries,abroad), abroad, fill = factor(gender))) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        ggtitle("Going abroad by Country and Gender") +
+        theme(legend.title = element_text(color = "black", size = 10),
+        legend.text = element_text(color = "black")) +
+        scale_fill_discrete(name = "Gender", labels = c("men", "women")) +
+       # scale_y_continuous(labels=scales::percent)+
+        xlab("Countries") + ylab("Going abroad")
+```
+
+
+```{r}
+```
+
+
+```{r}
+par(mfrow=c(1,2))
+hed1<-hed[hed$languages != "NA",]
+
+ggplot(hed, aes(factor(age),abroad, fill = factor(gender))) +
+        geom_bar(stat = "identity") +
+        guides(fill = guide_legend(reverse = TRUE)) +
+        labs(fill = "gender") + ggtitle("Age of students going abroad")+
+  xlab("Ages, 15-24/25-30") + ylab("Going abroad")+ scale_x_discrete(limits=c("0","1")) +
+        scale_fill_discrete(name = "Gender", labels = c("men", "women"))
+ggplot(hed, aes(factor(community),abroad, fill = factor(gender))) +
+        geom_bar(stat = "identity") +
+        guides(fill = guide_legend(reverse = TRUE)) +
+        labs(fill = "gender") + ggtitle("From which community students going abroad")+
+  xlab("Community, sub/rur") + ylab("Going abroad") + scale_x_discrete(limits=c("0","1")) +
+        scale_fill_discrete(name = "Gender", labels = c("men", "women"))
+
+ggplot(hed, aes(factor(languages),abroad, fill = factor(gender))) +
+        geom_bar(stat = "identity") +
+        guides(fill = guide_legend(reverse = TRUE)) +
+        labs(fill = "gender") + ggtitle("Spoken languages students going abroad")+
+  xlab("Languages, no/more than 2") + ylab("Going abroad") + scale_x_discrete(limits=c("0","1")) +
+        scale_fill_discrete(name = "community", labels = c("sub", "rur"))
+
+
+```
+
+
+```{r}
+hedq3 <-high[c(3,1,2,5,6,7,8,9,10,11,12,13,14,15, 27,28,29,30,31,32,33)]
+nrow
+library(dplyr)    
+filtered<-filter(hedq3, q3.1 != 9)
+
+M <- filtered[,c(4,5,6,7,8,9,10,11)]
+
+
+m2 <-data.frame(q3 = c("q3.1", "q3.2", "q3.3", "q3.4", "q3.5", "q3.6", "q3.7", "q3.8"),   count = c(sum(M[1]), sum(M[2]), sum(M[3]), sum(M[4]), sum(M[5]), sum(M[6]), sum(M[7]), sum(M[8])))
+
+ barplot(m2$count~m2$q3, lwd=2, col=m2$q3, main = "Benefits of experience abroad",
+        xlab = "Categories", ylab = "Frequency")
+
+
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(broom)
+library(numDeriv)
+library(MASS)
+library(ggplot2)
+library(lme4)
+
+very_short <- read_excel("very_short.xlsx")
+edu_2 <- data.frame(very_short)
+edu_3 <- edu_2[c(1,3,4,5,6,7,8,9,10)]
+library(dplyr)
+colnames(edu_3)[2:9] <-c("abroad","studies","gender","marital.status","languages","importanc.of. abroad","age","community")
+
+mod_e5 = glm(formula = abroad ~ studies + languages + `importanc.of. abroad` + age, family = binomial(link = "logit"), data = edu_3)
+
+m1_preds = tidy(mod_e5, conf.int = TRUE, exponentiate = TRUE) %>%
+    mutate(Model = "m2")
+
+hih_1 = glmer(formula = abroad ~ studies + languages + `importanc.of. abroad` + age + (1|country), family = binomial(link = "logit"), data = edu_3)
+
+m2_preds = tidy(mod_e2, conf.int = TRUE, exponentiate = TRUE) %>%
+    mutate(Model = "m1")
+#ors = bind_rows(m1_preds, m2_preds)
+#ors
+
+dodger = position_dodge(width = 0.3)
+ggplot(hih_1, aes(y = estimate, x = term, colour = Model)) +
+        geom_pointrange(aes(ymin = conf.low, ymax = conf.high),
+                       position = dodger,
+                       size = 1) +
+        geom_hline(yintercept = 1.0, linetype = "dotted", size = 1) +
+        scale_y_log10(breaks = c(0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10),
+                      minor_breaks = NULL) +
+        labs(y = "Odds ratio", x = "Effect") +
+        coord_flip(ylim = c(0.1, 12)) +
+        theme_bw() 
+summary(m2)
+
+```
+
+
+```{r}
+
+library(PerformanceAnalytics)
+chart.Correlation(edu_4,histogram = TRUE)
+
+names(edu_2)
+edu_4 <- edu_2[c(1,3,4,7,8)]
+
+```
+
+
+```{r}
+edu_3$st_lg <- edu_3$studies * edu_3$languages
+edu_3
+
+mod_e6 = glm(formula = abroad ~ studies + languages + `importanc.of. abroad` + age + st_lg, family = binomial(link = "logit"), data = edu_3)
+
+summary(mod_e6)
+
+```
+
+
+```{r}
+mod_e2 = glm(formula = abroad ~ studies + gender + marital.status + languages + `importanc.of. abroad` + age + community, family = binomial(link = "logit"), data = edu_3)
+summary(mod_e2)
+
+
+```
+
+
+```{r}
+mod_e5
+
+
+
+```
+
+
+```{r}
+library(car)
+summary(mod_e5)
+vif(mod_e5)
+mod_e5 = glm(formula = abroad ~ studies + languages + `importanc.of. abroad` + age, family = binomial(link = "logit"), data = edu_3)
+
+
+
+library(dplyr)
+library(ggplot2)
+library(caret)
+library(ModelMetrics)
+library(stats4)
+library(jtools)
+library(MASS)
+library(DAAG)
+library(car)
+
+
+mod_e5$aic
+mod_e2$aic
+
+mod_e5$coefficients
+
+fit = glm(formula = abroad ~ studies + languages + `importanc.of. abroad` + age, family = binomial(link = "logit"), data = edu_3)
+       
+```
+
+```{r}
+set.seed(100)  # setting seed to reproduce results of random sampling
+tidx <- sample(1:nrow(edu_3), 0.8*nrow(edu_3))
+# row indices for training data
+trainingData <- edu_3[tidx, ]  # model training data
+testData  <- edu_3[-tidx, ]   # test data
+
+lmMod = glm(formula = abroad ~ studies + languages + `importanc.of. abroad` + age, family = binomial(link = "logit"), data = trainingData)
+
+Pred <- predict(lmMod, testData)  # predict distance
+
+actuals_preds <- data.frame(cbind(actuals=testData$abroad, predicteds=Pred))  # make actuals_predicteds dataframe.
+correlation_accuracy <- cor(actuals_preds)
+
+head(actuals_preds)
+
+
+```
+
+
+```{r}
+PerentChange = sum(actuals_preds$actuals[1:7]) +sum(actuals_preds$actuals[1:7])/sum(actuals_preds$predicteds[1:7])*100
+PerentChange
+```
+
+
+```{r}
+PerentChange = sum(actuals_preds$actuals[1:7]) - sum(actuals_preds$actuals[1:7])/sum(actuals_preds$predicteds[1:7])*100
+PerentChange
+```
+
+
+```{r}
+```
+
+
+```{r}
+DMwR::regr.eval(actuals_preds$actuals[1:5], actuals_preds$predicteds[1:5])
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

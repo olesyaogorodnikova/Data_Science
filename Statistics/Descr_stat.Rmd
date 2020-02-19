@@ -1,0 +1,357 @@
+---
+title: "Stat_Day1"
+output: html_document
+---
+Exercise 1: Calculating Central Tendency
+Use the ”baseball.csv“ data set. Choose five variables in the data and for each:
+Calculate the mean, median and mode.
+Explain for each variable, which of the three central tendencies is the best to represent the variable and why.
+Are any of the measures for the central tendency misleading? Why?
+Bonus: produce a histogram of the data, with vertical lines showing the mean, median, and mode.
+
+```{r}
+data <- read.csv("baseball_.csv")
+head(data)
+
+```
+
+
+```{r}
+ds <-data[c(8,9,10,13,15)]
+head(ds)
+```
+
+
+```{r}
+apply(ds,2,mean, na.rm=TRUE)
+```
+
+
+```{r}
+apply(na.omit(ds),2,median)
+```
+
+
+```{r}
+mod <- function(n) {
+  ux <- unique(n)
+  ux[which.max(tabulate(match(n, ux)))]
+}
+mod(ds$ab)
+
+ab = na.omit(ds$ab)
+mod(data$year)
+
+
+
+```
+
+
+```{r}
+summary(ds$ab)
+```
+
+
+```{r}
+ggplot(ds, aes(x=ab))+ 
+  geom_histogram(binwidth =10)+ geom_vline(aes(xintercept=131), color="blue", size=2)+ geom_vline(aes(xintercept=225), color="red", size=2)+ geom_vline(aes(xintercept=0), color="green",size=2)
+```
+
+Exercise 2: Detect Outliers with IQR Rule
+Use the ”Employee.compensation.csv“ data set. Identify outliers for the variable “Total.Compensation”.
+Explain what rule applies in the outlier and how you could identify them in the R-Output.
+Helpful R-functions: quantile(), IQR(), boxplot()
+Bonus: Detect outliers with the rule [mean - t * SD, mean + t * SD], with t = 3.
+
+
+
+```{r}
+data2 <- read.csv("Employee.Compensation_.csv")
+data2
+str(data2$Total.Compensation) 
+```
+
+
+```{r}
+
+q = data2$Total.Compensation
+s = data2$Salaries
+c = data2$Total.Benefits
+
+
+boxplot(q,s,c)
+```
+
+
+```{r}
+quantiles <- quantile(q)
+quantiles
+```
+
+
+```{r}
+IQR(q)
+```
+
+
+```{r}
+above = quantiles["75%"] + 1.5*IQR(q)
+above
+below = quantiles["25%"] - 1.5*IQR(q)
+below
+
+
+q1 = mean(q)+3*sd(q)
+q1
+q2 = mean(q)-3*sd(q)
+q2
+
+
+```
+
+
+
+```{r}
+summary(q)
+```
+
+
+Exercise 3: Standard deviations
+What is the population standard deviation for the numbers: 75, 83, 96, 100, 121 and 125?
+
+
+```{r}
+x <- c(75, 83, 96, 100, 121, 125)    
+std = sqrt(sum((x - mean(x))^2)/(6))  
+std  
+
+```
+
+Ten friends scored the following marks in their end-of-year math exam: 23%, 37%, 45%, 49%, 56%, 63%, 63%, 70%, 72% and 82%. What was the standard deviation of their marks?
+
+
+
+```{r}
+
+x1 <- c(23, 37, 45, 49, 56, 63, 63, 70, 72, 82)
+std = sqrt(sum((x1 - mean(x1))^2)/(10))  
+std
+```
+
+A booklet has 12 pages with the following numbers of words: 271, 354, 296, 301, 333, 326, 285, 298, 327, 316, 287 and 314. What is the standard deviation number of words per page?
+
+
+```{r}
+x2 <- c(271, 354, 296, 301, 333, 326, 285, 298, 327, 316, 287, 314)
+std = sqrt(sum((x2 - mean(x2))^2)/(12))
+std
+```
+
+How does the standard deviation change, when each of the five numbers is increased by 2. Argue non-numerically.
+
+will not change
+
+```{r}
+x3<- x2*2
+x3 <- c(271, 354, 296, 301, 333, 326, 285, 298, 327, 316, 287, 314)
+std = sqrt(sum((x3 - mean(x3))^2)/(12))
+std
+
+```
+
+Bonus: write an R-function for the computation of the variance either with a for-loop or with the function apply() (more advanced). Show for one of the examples above that your function is correct.
+
+```{r}
+svarf <- function(x) {
+    s = 0
+    for (i in 1:length(x)) {
+      s <- s + x[i]
+    }
+    a = s / length(x)
+    s = 0
+    for (i in 1: length(x)) {
+      s <- s + (x[i]-a)^2
+     }
+    return(s/(length(x)-1))
+  }
+
+h <- heights <- c(271, 354, 296, 301, 333, 326, 285, 298, 327, 316, 287, 314)
+
+var =svarf(h)
+sqrt(var)
+```
+
+
+Exercise 5: Distributions
+Generate the following figure of a normal distribution with different parameters values using rnorm().
+
+```{r}
+ggplot(data = data.frame(x = c(-5, 5)), aes(x)) +
+  stat_function(fun = dnorm, n = 101, color="red", size = 1, args = list(mean = 0, sd = sqrt(0.2))) +
+  stat_function(fun = dnorm, n = 101, color="blue", size = 1, args = list(mean = 0, sd = 1)) +
+  stat_function(fun = dnorm, n = 101, color="yellow", size = 1, args = list(mean = 0, sd = sqrt(5))) +
+  stat_function(fun = dnorm, n = 101, color="black", size = 1, args = list(mean = -2, sd = sqrt(0.5)))
+
+```
+
+
+```{r}
+```
+
+Exercise 6: Probability Density Function and Cumulative Distribution Function
+
+```{r}
+##Assume you have a population of people whose heights are described by Height ~ N (170, 7):
+n <- 10
+v <- round(rnorm(10, 170, 7))
+print(v)
+```
+
+
+```{r}
+## What percent of the population is between 170 and 175cm tall?
+ans1 <- 0
+for (i in 1:n) {
+	if (v[i]>=170 && v[i]<=175) ans1 <- ans1 + 1
+}
+ans1 <- round(100.0*ans1/n,2)
+```
+
+
+```{r}
+# What height is taller than 70% of the population?
+value = qnorm(0.7, mean=170, sd=7)
+value
+##What height is taller than 70% of the population?
+vs <- sort(v)
+m = round(0.7*n +1)
+print(vs[m:n])
+
+```
+
+
+```{r}
+##If someone is 168cm tall, what percent of the population is shorter than they are?
+v[n/2] <- 168
+print(v)
+cnt <- sum(v < 168)
+ans2 <- round(100.0*cnt/n,2)
+cat(ans2,"%") 
+
+
+print(1-pnorm(168, 170, 7))
+
+```
+
+
+```{r}
+# Find an interval that includes 50% of the population.
+value_lower = qnorm(0.25, mean=170, sd=7)
+value_lower
+value_higher = qnorm(0.75, mean=170, sd=7)
+value_higher
+
+```
+
+
+```{r}
+#Find an interval that includes 20% of the population.
+value_lower2 = qnorm(0.4, mean=170, sd=7)
+value_lower2
+value_higher2 = qnorm(0.6, mean=170, sd=7)
+value_higher2
+```
+
+
+```{r}
+```
+
+
+```{r}
+
+
+```
+
+
+Exercise 7: Bernoulli / Binomial Distribution
+
+```{r}
+myBinomial <- function(n, p){
+    v <- c()
+	for (i in 1:n)
+	{
+		if (runif(1)<=p)
+			v <- c(v, 1)
+		else
+			v <- c(v, 0)
+	}
+	return(v)
+}
+mb = myBinomial(10, 0.9)
+print(mb)
+
+
+```
+
+
+```{r}
+myBinomial <- function(n, p) {
+    draws <- numeric(n)
+        for (i in 1:n){
+            if (runif(1) <= (p)) {
+                draws[i] <- 1 }
+            else { 
+                draws[i] <-0
+        }
+    }
+
+return(draws)
+}
+mb = myBinomial(10, 0.76)
+print(mb)
+
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

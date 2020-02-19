@@ -1,0 +1,148 @@
+---
+title: "Higher Education"
+output: html_document
+---
+GOAL
+Which are the explanatory variables (decision making factors) for young people willing to go to study abroad. Q2 (1/0)
+
+The dependant variable: If they have been already abroad
+Dependant variables: 
+X1 – country of origin (category/EU countries)
+X2 – type of community, urb/rur (1/0)
+X3 – spoken languages, yes/no ( 1/0)
+X4 – age (before 24 and after - 0/1)
+X5 – gender m/f ( 1/2)
+X6 – marital status, single/not (1/0)
+X7 – importance of having experience abroad (1/0) – Q1
+X8 – studied, never studied (0/1) -Q6
+
+X.. – Benefits of study abroad ( for those who already was) -Q3
+X… – Reasons why not to go ( for those who never been) – Q4
+
+
+```{r}
+library(readxl)
+edu <- read_excel("data_even_shorter.xlsx")
+edu
+
+```
+
+
+```{r}
+
+high <- read_excel("data_high.xlsx")
+high
+
+```
+
+
+```{r}
+hed <-high[c(3,1,2, 27,28,29,30,31,32,33)]
+hed
+```
+
+
+```{r}
+
+with(hed, table(gender, Going_abroad))
+
+
+```
+
+
+```{r}
+with(hed, 
+     barplot(
+         table(gender, Going_abroad), 
+         beside = TRUE, 
+         legend = TRUE)
+     )
+
+names(hed)
+```
+
+
+```{r}
+n1 = nrow(hed[hed$Going_abroad == 1,])
+n_total = nrow(hed)
+
+ggplot(hed, aes(x = reorder(Countries,Going_abroad), Going_abroad/n1, fill = factor(gender))) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        ggtitle("Fig. Going abroad by Country and Gender") +
+        theme(legend.title = element_text(color = "black", size = 10),
+        legend.text = element_text(color = "red")) +
+        scale_fill_discrete(name = "Gender", labels = c("men", "women")) +
+        scale_y_continuous(labels=scales::percent)
+
+```
+
+
+```{r}
+n1 = nrow(hed[hed$Going_abroad == 1,])
+
+ggplot(hed, aes(x = reorder(Countries,Going_abroad), Going_abroad/n1, fill = factor(gender))) +
+        geom_bar(stat = "identity") +
+        coord_flip() 
+              
+  
+```
+
+
+```{r}
+hed %>% 
+count(hed$Going_abroad) %>%
+co <- mutate(perc = n/nrow(hed))
+ggplot(co, aes(x=Going_abroad, y=perc)) + geom_bar(stat = "identity")
+```
+
+
+```{r}
+
+ggplot(data = hed) + 
+  geom_bar(mapping = aes(x = reorder(Countries,Going_abroad), fill = factor(gender), y = ..prop.., group = 1), stat = 'count')
+
+#aes(x = reorder(Countries,Going_abroad), Going_abroad, fill = factor(gender))
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

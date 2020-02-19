@@ -1,0 +1,156 @@
+---
+title: "KL-Divergence - Solution"
+output: html_notebook
+---
+#################################
+# KL-divergence exercise
+#
+#################################
+
+#########
+# Problem :- A scientist working in south pole found a new species of snails and 
+# s/he counts the number of teeth in all her/his samples (number of teeths range from 1 to 11)
+# and generates the following frequency of seeing different teeth numbers. This scientist wants to 
+# send this information back to her/his lab so to do so s/he wants to compress all the data into
+# two values (distribution parameters) that can be sent easilty back.
+# Which of the two, uniform or binomial distribution would you the scientist to use?
+#########
+
+```{r}
+
+true_data = c(0.02, 0.03, 0.05, 0.14, 0.16, 0.15, 0.12, 0.08, 0.1, 0.08, 0.07)
+num_teeth = c(0, seq(length(true_data) - 1))
+
+```
+
+###################################
+## Question - check if all probabilities add up to one
+###################################
+
+```{r}
+
+sum(true_data) == 1
+
+# let's visualize the distribution
+barplot(true_data, main = "Probability Distribution of Snails Teeth", 
+        xlab = "Different Teeth Bins", ylab = "Probability", las = 2, col = "blue",
+        names.arg = num_teeth, ylim = c(0,0.25))
+#Checking legend error with chartJSRadar --- Uncomment line below to plot the legend
+#legend("topright", legend = c("True"), text.col = c("blue"))
+
+
+## let's model the true distribution using uniform distribution 
+## In uniform distribution every event happens with equal probability
+```
+
+###################################
+## Question - generate a uniform distribution by repeating 1/11, as many times as unique numer of teeth
+```{r}
+unif_data = c(rep(1/11, 11))
+unif_data
+```
+###################################
+
+```{r}
+## table is created just for plotting reasons
+tab_data = cbind(true_data, unif_data)
+
+## question - make a box plot containing both true and uniform distribution with proper labels
+barplot(t(tab_data), main = "Probability Distribution of Snails Teeth", 
+        xlab = "Different Teeth Bins", ylab = "Probability", las = 2, col = c("blue", "orange"),
+        names.arg = num_teeth, beside=TRUE,  ylim = c(0,0.25))
+legend("topright", legend = c("True", "Uniform"), text.col = c("blue", "orange"))
+
+## Let's approximate the true distribution with binomial distribution
+
+## The mean of a binomial distribution is given by np and it's variance by np(1-p)
+# i.e expected number of successes if you run n trials
+```
+###################################
+# Question - Calculate expected number of teeth by multiplying true_data probabilities with number of 
+# teeth and summing the results up
+###################################
+
+```{r}
+exp_teeth = sum(true_data*num_teeth)
+
+# exp_teeth = np (where n = 10) i.e. exp_teeth = 10*p, let's get p
+```
+
+
+###################################
+# Question - get the probability of success for binomial distribution 
+# n here is 10 i.e. the maximum number of teeth observed in data
+###################################
+
+```{r}
+p = exp_teeth/10
+
+# next we need to obtain the probability of binomial success given this p
+```
+
+###################################
+## Question - fill the rest of the code to finish generating data for binomial probabilities
+###################################
+
+```{r}
+bino_probability = function(p, k, n){
+  fact_value = c(factorial(n)/c(factorial(k)*factorial(n-k)))
+  p_k = p^k
+  q_k = c(1-p)^(n-k)
+  success_prob = fact_value*p_k*q_k
+  success_prob
+}
+
+## creating binomial probabilities of occurance of all events
+bino_prob =bino_probability(p,k = num_teeth, n=10)
+#dbinom(num_teeth, size=10, prob=10)
+#dbinom(num_teeth, prob=p, size=10)
+## creating a table for plotting purposses only
+tab_data =cbind(true_data, bino_prob)
+## let's plot both distributions at once
+barplot(t(tab_data),main = "Prob distr",xlab ="diff teeth Bins", ylab = "Probability", las =2, col =c("blue","green"), names.arg = num_teeth, beside =TRUE, ylim=c(0,0.25))
+legend("topright", legend =c("True", "Binomial"), text.col=c("blue", "green"))
+
+## let's put all three distributions in one plot
+
+```
+
+###################################
+# Question - Create a tab_data again combining all probabilities for box plot and create
+# your own boxplot for all three distributions together. Do not forget the legend
+###################################
+
+```{r}
+tab_data = cbind(cbind(true_data,unif_data), bino_prob)
+## let's plot both distributions at once
+barplot(t(tab_data), main = "Probability Distribution of Space Worm Teeth", 
+        xlab = "Different Teeth Bins", ylab = "Probability", las = 2, col = c("blue", "orange","green"),
+        names.arg = num_teeth, beside=TRUE,  ylim = c(0,0.25))
+legend("topright", legend = c("True","Uniform", "Binomial"), text.col = c("blue","orange", "green"))
+
+## let's write function to get KL divergenc
+```
+
+###################################
+# Question - Fill the code for KL divergence
+###################################
+
+```{r}
+klpq_dv = function(p_probs, q_probs){
+  kl_div = 0
+  for(i in 1:length(p_probs)){
+    kl_div = kl_div + p_probs[i]*log(p_probs[i]/q_probs[i])#INSERT CODE HERE
+  }
+  kl_div
+}
+
+print(paste("KL(True|Uniform): ", klpq_dv(true_data,unif_data)))
+print(paste("KL(True|Binomial): ", klpq_dv(true_data,bino_prob)))
+```
+
+
+## A KL divergence of zero means it both distributions are same where the higher it is 
+## the lower the overlap with known distribution is. pi is multiplied with log(pi/qi) to get
+## the expected value of the log component. Intuitively it makes sense to give priority 
+## to correctly match the truly highly probable events in the approximation.
